@@ -33,3 +33,5 @@ build/
 
 ### VS Code ###
 .vscode/
+OpenJDK17U-jdk_x64_linux_hotspot_17.tar.gz
+target/
