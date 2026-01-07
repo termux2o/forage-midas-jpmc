@@ -1,13 +1,95 @@
+# -------------------------------
+# Custom application-level config
+# -------------------------------
 general:
   kafka-topic: trader-updates
+  # Name of the Kafka topic from which Midas Core
+  # consumes transaction messages
+  # Tests and Kafka listener use this value
+
+# -------------------------------
+# Spring framework configuration
+# -------------------------------
 spring:
+
+  # -------------------------------
+  # Kafka configuration
+  # -------------------------------
   kafka:
+
+    # Kafka PRODUCER settings
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Serializes message keys as String
+      # Required so Kafka understands the key format
+
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # Converts Java objects (Transaction) into JSON
+      # Required to send transaction objects
+
+    # Kafka CONSUMER settings
     consumer:
       auto-offset-reset: earliest
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      # Reads messages from the beginning of the topic
+      # IMPORTANT: ensures tests process ALL transactions
+
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Converts Kafka message key back to String
+
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      # Converts JSON back into Java Transaction object
+
       properties:
         spring.json.trusted.packages: "*"
+        # Allows deserialization of Transaction class
+        # "*" is safe here because this is a test project
+
+  # -------------------------------
+  # Database (H2) configuration
+  # -------------------------------
+  datasource:
+    url: jdbc:h2:mem:midasdb
+    # In-memory H2 database
+    # "mem" means database exists only while app runs
+    # Tests expect a fresh DB every run
+
+    driver-class-name: org.h2.Driver
+    # JDBC driver for H2 database
+
+    username: sa
+    # Default H2 username
+
+    password: ""
+    # No password needed for in-memory H2
+
+  # -------------------------------
+  # JPA / Hibernate configuration
+  # -------------------------------
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    # Tells Hibernate which SQL dialect to use
+    # Ensures correct SQL is generated for H2
+
+    hibernate:
+      ddl-auto: update
+      # Automatically creates/updates tables
+      # REQUIRED to generate tables for:
+      # - User entity
+      # - TransactionRecord entity
+
+    show-sql: true
+    # Prints SQL queries in console
+    # Helps verify balance updates & inserts
+
+  # -------------------------------
+  # H2 Web Console (debugging only)
+  # -------------------------------
+  h2:
+    console:
+      enabled: true
+      # Enables browser-based DB console
+
+      path: /h2-console
+      # Access at: http://localhost:8080/h2-console
+server:
+  port: 33400
